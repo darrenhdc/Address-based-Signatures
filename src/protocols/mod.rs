@@ -9,3 +9,4 @@ pub mod ecdsa;
 pub mod schnorr;
 pub mod bb_sig;
 pub mod bls_sig;
+pub mod gc2_ecdsa;

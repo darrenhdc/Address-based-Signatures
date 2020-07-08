@@ -1,5 +1,17 @@
 #![feature(test)]
 pub mod protocols;
+
+use protocols::bls_sig;
+use protocols::bb_sig;
+use protocols::addr_schnorr;
+use protocols::addr_ecdsa;
+use protocols::addr_sig;
+use protocols::keyprefix_schnorr;
+use protocols::gc1_keyprfx_schnorr;
+use protocols::gc2_keyprfx_schnorr;
+use protocols::schnorr;
+use protocols::ecdsa;
+
 use curv::cryptographic_primitives::hashing::traits::Hash;
 use curv::cryptographic_primitives::hashing::hash_sha256::HSha256;
 use curv::elliptic::curves::traits::{ECPoint, ECScalar};
