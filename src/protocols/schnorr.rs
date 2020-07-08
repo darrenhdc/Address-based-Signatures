@@ -52,13 +52,13 @@ impl Original_Schnorr_Setup {
     }
 
     pub fn verify(
-        X: GE,
+        X: &GE,
         sig: &Original_Schnorr_Signature,
         m: &BigInt,
     ) -> bool {
         let mut flag = true;
         let gz = &GE::generator() * &ECScalar::from(&sig.z);
-        let Xc = &X * &ECScalar::from(&sig.c);
+        let Xc = X * &ECScalar::from(&sig.c);
         let R = &gz + &Xc;
         let c_recover = HSha256::create_hash(&[
             &R.bytes_compressed_to_big_int(),

@@ -61,10 +61,9 @@ impl Original_ECDSA_Setup {
         let Xr = X * & ECScalar::from(&sig.r);
         let gc = GE::generator() * & ECScalar::from(&c);
         let xrgc = &Xr + &gc;
-        let xrgc_inv = &xrgc * &ECScalar::from(
-            &BigInt::from(-1)
-        );
-        let K = &xrgc_inv * &ECScalar::from(&sig.s);
+        let s_inv = sig.s.invert(&FE::q()).unwrap();
+        let K = &xrgc * &ECScalar::from(&s_inv);
+        assert_eq!(K.x_coor().unwrap(),sig.r);
         if K.x_coor().unwrap() != sig.r {
             flag = false
         }

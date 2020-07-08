@@ -68,6 +68,7 @@ impl Addr_Based_ECDSA_Setup {
         // use x-coordinator r to reconstruct secp256k1 point
         // miss the y reconstruct
         let K1: GE = GE::from_coor(&sig.r, &sig.y);
+        // let K2: GE = GE::from_coor(&sig.r, &sig.y);
         let K2: GE = GE::from_coor(&sig.r, &(&sig.y * &BigInt::from(-1)));
         let r_inv = sig.r.invert(&FE::q());
         let k1s = &K1 * &ECScalar::from(&sig.s);

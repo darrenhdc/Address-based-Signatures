@@ -68,11 +68,12 @@ impl Addr_Based_Setup {
         .mod_floor(&FE::q()); // c = Hzp(...)
         let Rz: GE = &sig.R * &ECScalar::from(&sig.z); // R^z
         let g_inv: GE = &GE::generator() * &ECScalar::from(&BigInt::from(-1));
-        let X = Rz + g_inv;
+        let g_inv_c = &g_inv * &&ECScalar::from(&c);
+        let X = Rz + g_inv_c;
         if A != &crate::Hash(&X) {
             flag = false;
         }
-        assert_eq!(flag, true, "verify fialed.");
+        // assert_eq!(flag, true, "verify fialed.");
         flag
     }
 }
