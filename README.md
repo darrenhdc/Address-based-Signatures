@@ -1,5 +1,5 @@
 # Address-based Signature
-implementation of the following algorithms in src/main/rs:
+implementation of the following algorithms in src/protocols/:
 - Address based signature
 - Address based ECDSA
 - ECDSA + GC2
