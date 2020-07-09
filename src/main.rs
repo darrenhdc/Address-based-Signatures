@@ -17,7 +17,7 @@ use protocols::gc2_ecdsa;
 
 use curv::cryptographic_primitives::hashing::traits::Hash;
 use curv::cryptographic_primitives::hashing::hash_sha256::HSha256;
-use curv::elliptic::curves::traits::ECPoint;
+use curv::elliptic::curves::traits::{ECPoint, ECScalar};
 use curv::BigInt;
 use curv::{FE, GE};
 
@@ -185,11 +185,11 @@ fn GC2_ECDSA_verify(b: &mut Bencher) {
 
 fn main() {
     let message: BigInt = BigInt::from(12345);
-    // let s1 = addr_ecdsa::Addr_Based_ECDSA_Setup::keygen();
+    let s1 = addr_ecdsa::Addr_Based_ECDSA_Setup::keygen();
     // let sig1 = s1.sign(&message);
     // let ret1 = addr_ecdsa::Addr_Based_ECDSA_Setup::verify(&sig1, &message, &s1.A);
     // println!("addr_ecdsa_verify:{}",ret1); 
-
+/*
     let s2 = addr_schnorr::Addr_Based_Schnorr_Setup::keygen();
     let sig2 = s2.sign(&message);
     let ret2 = addr_schnorr::Addr_Based_Schnorr_Setup::verify(&sig2, &&message, &s2.A);
@@ -229,7 +229,7 @@ fn main() {
     let sig9 = s9.sign(&message);
     let ret9 = gc2_ecdsa::GC2_ECDSA_Setup::verify(&sig9, &s9.X, &message, &s9.A);
     println!("gc2_ecdsa_verify:{}",ret9);
-
+*/
     // let pk = GE::generator();
     // let s = serde_json::to_string(&pk).expect("Failed in serialization");
     // println!("s:{}",s);
@@ -243,11 +243,18 @@ fn main() {
     // // assert_eq!(result.unwrap_err(), ErrorKey::InvalidPublicKey);
     // assert_eq!(g, result);
 
-    // let q = FE::q();
-    // let x = g.x_coor().unwrap();
-    // let y2 = (&x * &x * &x + BigInt::from(7)).mod_floor(&FE::q());
-    // let y = y2.sqrt().mod_floor(&FE::q());
-    // assert_eq!(g.y_coor().unwrap().pow(2).mod_floor(&FE::q()), y2);
+    // p = 2^256 - 2^32 - 2^9 - 2^8 - 2^7 - 2^6 - 2^4 - 1
+    let p = str::parse(
+        "115792089237316195423570985008687907853269984665640564039457584007908834671663",
+    )
+    .unwrap();
+    let g1 = GE::generator() * &ECScalar::from(&BigInt::from(3));
+    // let g1 = GE::generator();
+    let x = g1.x_coor().unwrap();
+    let y2 = (&x * &x * &x + BigInt::from(7)).mod_floor(&p);
+    let y = y2.sqrt();//.mod_floor(&p);
+    assert_eq!(y.pow(2).mod_floor(&p), y2);
+    assert_eq!(g1.y_coor().unwrap().pow(2).mod_floor(&p), y2);
 
     println!("Hello, world!");
 }
