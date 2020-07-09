@@ -6,14 +6,24 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = ["rust-gmp"]
+
+
 [dependencies]
+curv = { path = "../addr_depend/curv", features = ["ec_secp256k1"]}
 libc = "0.2.0"
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
 
-[dependencies.curv]
-git = "https://github.com/KZen-networks/curv"
-features =  ["ec_secp256k1"]
-tag = "v0.2.3"
+#[dependencies.curv]
+#git = "https://github.com/KZen-networks/curv"
+#features =  ["ec_secp256k1"]
+#tag = "v0.2.3"
 
+[dependencies.rust-gmp]
+version = "0.5.0"
+features = ["serde_support"]
+git = "https://github.com/KZen-networks/rust-gmp"
+optional = true

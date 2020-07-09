@@ -20,7 +20,7 @@ pub struct Addr_Based_ECDSA_Setup {
 pub struct Addr_Based_ECDSA_Signature {
     pub r: BigInt,
     pub s: BigInt,
-    y: BigInt, // should be deleted, for rebuilding y.
+    // y: BigInt, // should be deleted, for rebuilding y.
 }
 
 impl Addr_Based_ECDSA_Setup {
@@ -54,7 +54,7 @@ impl Addr_Based_ECDSA_Setup {
         Addr_Based_ECDSA_Signature {
             r,
             s,
-            y,
+            // y,
         } 
     }
 
@@ -73,11 +73,11 @@ impl Addr_Based_ECDSA_Setup {
         .unwrap();
         // use x-coordinator r to reconstruct secp256k1 point
         let y2 = (&sig.r * &sig.r * &sig.r + BigInt::from(7)).mod_floor(&p);
-        let y_abs = y2.sqrt().mod_floor(&p);
-        assert_eq!(sig.y.pow(2).mod_floor(&p), y_abs);
-        // let K1: GE = GE::from_coor(&sig.r, &y_abs);
+        let y_abs = crate::solve_quadratic_root(&y2, &p);
+        // assert_eq!(sig.y.pow(2).mod_floor(&p), y_abs);
+        let K1: GE = GE::from_coor(&sig.r, &y_abs);
         // let K2: GE = GE::from_coor(&sig.r, &y_abs);
-        let K1: GE = GE::from_coor(&sig.r, &(&y_abs * &BigInt::from(-1)));
+        // let K1: GE = GE::from_coor(&sig.r, &(&y_abs * &BigInt::from(-1)));
         let K2: GE = GE::from_coor(&sig.r, &(&y_abs * &BigInt::from(-1)));
         let r_inv = sig.r.invert(&FE::q());
         let k1s = &K1 * &ECScalar::from(&sig.s);
@@ -93,7 +93,7 @@ impl Addr_Based_ECDSA_Setup {
             flag = false
         }
         // assert_eq!(A, &crate::Hash(&X2));
-        assert_eq!(flag, true, "verify fialed.");
+        // assert_eq!(flag, true, "verify fialed.");
         flag
     }
 }

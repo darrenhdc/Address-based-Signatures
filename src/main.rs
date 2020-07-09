@@ -14,12 +14,27 @@ use protocols::schnorr;
 use protocols::ecdsa;
 use protocols::gc2_ecdsa;
 
+use gmp::mpf::Mpf;
 
 use curv::cryptographic_primitives::hashing::traits::Hash;
 use curv::cryptographic_primitives::hashing::hash_sha256::HSha256;
 use curv::elliptic::curves::traits::{ECPoint, ECScalar};
 use curv::BigInt;
 use curv::{FE, GE};
+
+// find the solution of x^2 = a mod p
+pub fn solve_quadratic_root(a: &BigInt, p: &BigInt) -> BigInt {
+    let p: BigInt = str::parse(
+        "115792089237316195423570985008687907853269984665640564039457584007908834671663",
+    )
+    .unwrap();
+    // exp = (p+1)/4
+    let exp: BigInt = str::parse(
+        "28948022309329048855892746252171976963317496166410141009864396001977208667916",
+    )
+    .unwrap();
+    a.powm(&exp, &p)
+}
 
 // H: G->{0,1}^160
 pub fn Hash(input: &GE) -> BigInt {
@@ -49,7 +64,7 @@ pub fn reversible_hash_recover_pk(s: &std::string::String) -> GE {
 //     let hash_vec =  BigInt::to_vec(&hash);
 //     GE::from_bytes(&hash_vec).unwrap()
 }
-
+/*
 #[bench]
 fn Addr_Based_Schnorr_sign(b: &mut Bencher) {
     let message = HSha256::create_hash(&[&BigInt::from(12345),]);
@@ -182,13 +197,33 @@ fn GC2_ECDSA_verify(b: &mut Bencher) {
         gc2_ecdsa::GC2_ECDSA_Setup::verify(&sig9, &s9.X, &message, &s9.A);
     });
 }
+*/
+
+#[bench]
+fn Addr_based_ECDSA_sign(b: &mut Bencher) {
+    let message = HSha256::create_hash(&[&BigInt::from(12345),]);
+    let s1 = addr_ecdsa::Addr_Based_ECDSA_Setup::keygen();
+    b.iter(||{
+        s1.sign(&message);
+    });
+}
+
+#[bench]
+fn Addr_based_ECDSA_verify(b: &mut Bencher) {
+    let message = HSha256::create_hash(&[&BigInt::from(12345),]);
+    let s1 = addr_ecdsa::Addr_Based_ECDSA_Setup::keygen();
+    let sig1 = s1.sign(&message);
+    b.iter(||{
+        addr_ecdsa::Addr_Based_ECDSA_Setup::verify(&sig1, &message, &s1.A);
+    });
+}
 
 fn main() {
     let message: BigInt = BigInt::from(12345);
     let s1 = addr_ecdsa::Addr_Based_ECDSA_Setup::keygen();
-    // let sig1 = s1.sign(&message);
-    // let ret1 = addr_ecdsa::Addr_Based_ECDSA_Setup::verify(&sig1, &message, &s1.A);
-    // println!("addr_ecdsa_verify:{}",ret1); 
+    let sig1 = s1.sign(&message);
+    let ret1 = addr_ecdsa::Addr_Based_ECDSA_Setup::verify(&sig1, &message, &s1.A);
+    println!("addr_ecdsa_verify:{}",ret1); 
 /*
     let s2 = addr_schnorr::Addr_Based_Schnorr_Setup::keygen();
     let sig2 = s2.sign(&message);
@@ -244,17 +279,30 @@ fn main() {
     // assert_eq!(g, result);
 
     // p = 2^256 - 2^32 - 2^9 - 2^8 - 2^7 - 2^6 - 2^4 - 1
-    let p = str::parse(
+    let p: BigInt = str::parse(
         "115792089237316195423570985008687907853269984665640564039457584007908834671663",
     )
     .unwrap();
     let g1 = GE::generator() * &ECScalar::from(&BigInt::from(3));
     // let g1 = GE::generator();
     let x = g1.x_coor().unwrap();
+    // println!("x:{}",x);
     let y2 = (&x * &x * &x + BigInt::from(7)).mod_floor(&p);
-    let y = y2.sqrt();//.mod_floor(&p);
-    assert_eq!(y.pow(2).mod_floor(&p), y2);
-    assert_eq!(g1.y_coor().unwrap().pow(2).mod_floor(&p), y2);
+    let y_abs = solve_quadratic_root(&y2, &p); // has problem: https://www.johndcook.com/blog/quadratic_congruences/
+
+    // println!("y_abs:{}",y_abs);
+    assert_eq!(y_abs.pow(2).mod_floor(&p), y2);
+    assert_eq!(g1.y_coor().unwrap().pow(2).mod_floor(&p), y2);//
+    assert_eq!(g1.y_coor().unwrap().mod_floor(&p),(y_abs * BigInt::from(-1)).mod_floor(&p));
+
+    // let mut y2_mpf = Mpf::zero();
+    // Mpf::set_z(&mut y2_mpf, &y2);
+    // let y = y2_mpf.sqrt();
+    // // println!("y:{:?}",y);
+    // let y2_revover_by_mpf = y * y;
+    // assert_eq!(y_revover_by_mpf, y2_mpf);
+    // // assert_eq!(y.pow(2), y2);
+    // assert_eq!(g1.y_coor().unwrap().pow(2).mod_floor(&p), y2);//
 
     println!("Hello, world!");
 }
