@@ -120,6 +120,7 @@ dependencies = [
 [[package]]
 name = "curv"
 version = "0.2.3"
+source = "git+https://github.com/KZen-networks/curv?tag=v0.2.3#d6c575b5711cd3d1c4e4e7f6c6b0fc0e38b3642a"
 dependencies = [
  "blake2b_simd",
  "digest",

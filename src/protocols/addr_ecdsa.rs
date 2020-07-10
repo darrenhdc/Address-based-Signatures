@@ -49,7 +49,7 @@ impl Addr_Based_ECDSA_Setup {
         let rx = BigInt::mod_mul(&r, &self.x, &FE::q());
         let crx = BigInt::mod_add(&c, &rx, &FE::q());
         let s = BigInt::mod_mul(&k_inv, &crx, &FE::q());
-        let y = K.y_coor().unwrap();
+        // let y = K.y_coor().unwrap();
 
         Addr_Based_ECDSA_Signature {
             r,
@@ -78,7 +78,7 @@ impl Addr_Based_ECDSA_Setup {
         let K1: GE = GE::from_coor(&sig.r, &y_abs);
         // let K2: GE = GE::from_coor(&sig.r, &y_abs);
         // let K1: GE = GE::from_coor(&sig.r, &(&y_abs * &BigInt::from(-1)));
-        let K2: GE = GE::from_coor(&sig.r, &(&y_abs * &BigInt::from(-1)));
+        let K2: GE = GE::from_coor(&sig.r, &(&y_abs * &BigInt::from(-1)).mod_floor(&p));
         let r_inv = sig.r.invert(&FE::q());
         let k1s = &K1 * &ECScalar::from(&sig.s);
         let k2s = &K2 * &ECScalar::from(&sig.s);
@@ -93,7 +93,7 @@ impl Addr_Based_ECDSA_Setup {
             flag = false
         }
         // assert_eq!(A, &crate::Hash(&X2));
-        // assert_eq!(flag, true, "verify fialed.");
+        assert_eq!(flag, true, "verify fialed.");
         flag
     }
 }
