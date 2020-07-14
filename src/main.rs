@@ -2,8 +2,12 @@
 pub mod protocols;
 extern crate test;
 use test::Bencher;
-use protocols::bls_sig;
-use protocols::bb_sig;
+use protocols::BLS_sig;
+use protocols::BB_sig;
+// use protocols::gc1_BLS_sig;
+// use protocols::gc1_BB_sig;
+use protocols::gc2_BLS_sig;
+use protocols::gc2_BB_sig;
 use protocols::addr_schnorr;
 use protocols::addr_ecdsa;
 use protocols::addr_sig;
@@ -16,11 +20,26 @@ use protocols::gc2_ecdsa;
 
 use gmp::mpf::Mpf;
 
+use bincode::SizeLimit::Infinite;
+use bincode::rustc_serialize::{encode, decode};
+use rustc_serialize::{Encodable, Decodable};
+use rustc_serialize::hex::{FromHex, ToHex};
+
 use curv::cryptographic_primitives::hashing::traits::Hash;
 use curv::cryptographic_primitives::hashing::hash_sha256::HSha256;
 use curv::elliptic::curves::traits::{ECPoint, ECScalar};
 use curv::BigInt;
 use curv::{FE, GE};
+
+
+pub fn into_hex<S: Encodable>(obj: S) -> Option<String> {
+    encode(&obj, Infinite).ok().map(|e| e.to_hex())
+}
+
+// convert typen String to static str
+pub fn string_to_static_str(s: String) -> &'static str {
+    Box::leak(s.into_boxed_str())
+}
 
 // find the solution of x^2 = a mod p
 pub fn solve_quadratic_root(a: &BigInt, p: &BigInt) -> BigInt {
@@ -200,6 +219,16 @@ fn GC2_ECDSA_verify(b: &mut Bencher) {
 */
 
 #[bench]
+fn GC2_ECDSA_verify(b: &mut Bencher) {
+    let message = HSha256::create_hash(&[&BigInt::from(12345),]);
+    let s9 = gc2_ecdsa::GC2_ECDSA_Setup::keygen();
+    let sig9 = s9.sign(&message);
+    b.iter(||{
+        gc2_ecdsa::GC2_ECDSA_Setup::verify(&sig9, &s9.X, &message, &s9.A);
+    });
+}
+
+#[bench]
 fn Addr_based_ECDSA_sign(b: &mut Bencher) {
     let message = HSha256::create_hash(&[&BigInt::from(12345),]);
     let s1 = addr_ecdsa::Addr_Based_ECDSA_Setup::keygen();
@@ -265,6 +294,27 @@ fn main() {
     let ret9 = gc2_ecdsa::GC2_ECDSA_Setup::verify(&sig9, &s9.X, &message, &s9.A);
     println!("gc2_ecdsa_verify:{}",ret9);
 */
+    let s10 = BB_sig::BB_Setup::keygen();
+    let sig10 = s10.sign(&message);
+    let ret10 = BB_sig::BB_Setup::verify(s10.X, &sig10, &message);
+    println!("BB_verify:{}",ret10);
+
+    let s12 = gc2_BB_sig::gc2_BB_Setup::keygen();
+    let sig12 = s12.sign(&message);
+    let ret12 = gc2_BB_sig::gc2_BB_Setup::verify(s12.X, &sig12, &message, &s12.A);
+    println!("GC2_BB_verify:{}",ret12);
+
+    let s20 = BLS_sig::BLS_Setup::keygen();
+    let sig20 = s20.sign(&message);
+    let ret20 = BLS_sig::BLS_Setup::verify(s20.X, &sig20, &message);
+    println!("BLS_verify:{}",ret20);
+
+    let s22 = gc2_BLS_sig::gc2_BLS_Setup::keygen();
+    let sig22 = s22.sign(&message);
+    let ret22 = gc2_BLS_sig::gc2_BLS_Setup::verify(s22.X, &sig22, &message, &s22.A);
+    println!("GC2_BLS_verify:{}",ret22);
+
+
     // let pk = GE::generator();
     // let s = serde_json::to_string(&pk).expect("Failed in serialization");
     // println!("s:{}",s);
@@ -285,7 +335,7 @@ fn main() {
     .unwrap();
     let g1 = GE::generator() * &ECScalar::from(&BigInt::from(3));
     // let g1 = GE::generator();
-    let x = g1.x_coor().unwrap();
+    let x = g1.x_coor().unwrap();//.mod_floor(&p);
     // println!("x:{}",x);
     let y2 = (&x * &x * &x + BigInt::from(7)).mod_floor(&p);
     let y_abs = solve_quadratic_root(&y2, &p); // has problem: https://www.johndcook.com/blog/quadratic_congruences/

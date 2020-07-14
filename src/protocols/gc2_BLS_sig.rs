@@ -11,13 +11,14 @@ use curv::{FE, GE};
 
 
 #[derive(Clone)]
-pub struct BLS_Setup {
+pub struct gc2_BLS_Setup {
     x: Fr, // sk
     pub X: G1, // pk
+    pub A: BigInt,
 }
 
 #[derive(Clone)]
-pub struct BLS_Signature {
+pub struct gc2_BLS_Signature {
     pub sigma: G2,
 }
 
@@ -39,34 +40,60 @@ pub fn H_G2(m: &BigInt) -> G2 {
         result
 }
 
-impl BLS_Setup{
+impl gc2_BLS_Setup{
     pub fn keygen() -> Self {
         let rng = &mut rand::thread_rng();
         let x = Fr::random(rng);
         let X = G1::one() * x; // pk = g1^sk
+        let X_hex = crate::into_hex(X).unwrap();
+        let two_pow_160 = BigInt::ui_pow_ui(2, 160);
+        let A = HSha256::create_hash(&[
+            &BigInt::from_str_radix(
+                &crate::string_to_static_str(X_hex),
+                16,
+            )
+            .unwrap(),
+        ])
+        .mod_floor(&two_pow_160);
         Self {
             x, // sk
             X, // pk
+            A,
         }
     }
     
     pub fn sign(
         &self,
         m: &BigInt
-    ) -> BLS_Signature {
+    ) -> gc2_BLS_Signature {
         let sigma = H_G2(m) * self.x;
-        BLS_Signature {
+        gc2_BLS_Signature {
             sigma
         }
     }
 
     pub fn verify(   
         X: G1,
-        sig: &BLS_Signature,
+        sig: &gc2_BLS_Signature,
         m: &BigInt,
+        A: &BigInt,
     ) -> bool  {
         let mut flag = true;
-        if pairing(G1::one(), sig.sigma) != pairing(X, H_G2(m)) {
+
+        let X_hex = crate::into_hex(X).unwrap();
+        let two_pow_160 = BigInt::ui_pow_ui(2, 160);
+        let A_recover = HSha256::create_hash(&[
+            &BigInt::from_str_radix(
+                &crate::string_to_static_str(X_hex),
+                16,
+            )
+            .unwrap(),
+        ])
+        .mod_floor(&two_pow_160);
+
+        if pairing(G1::one(), sig.sigma) != pairing(X, H_G2(m)) ||
+        &A_recover != A
+        {
             flag = false
         }
         assert_eq!(flag, true, "verify fialed.");

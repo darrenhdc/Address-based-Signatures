@@ -12,6 +12,7 @@ use curv::BigInt;
 use curv::{FE, GE};
 
 
+// Algorithm 1
 #[derive(Clone)]
 pub struct BB_Setup {
     x: Fr, // sk
@@ -59,7 +60,7 @@ impl BB_Setup{
         m: &BigInt,
     ) -> bool  {
         let mut flag = true;
-        // let rng = &mut rand::thread_rng();
+        let rng = &mut rand::thread_rng();
         // let c = HSha256::create_hash(&[&m,]).mod_floor(&FE::q()); // c = Hzp(...) 
         let p: BigInt = str::parse(
             "16030569034403128277756688287498649515510226217719936227669524443298095169537"

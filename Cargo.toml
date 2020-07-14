@@ -12,10 +12,13 @@ default = ["rust-gmp"]
 
 [dependencies]
 #curv = { path = "../addr_depend/curv", features = ["ec_secp256k1"]}
+rand = "~0.3.14"
+bn = "0.4.3"
 libc = "0.2.0"
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
+rustc-serialize = "~0.3.19"
 
 [dependencies.curv]
 git = "https://github.com/KZen-networks/curv"
@@ -27,3 +30,8 @@ version = "0.5.0"
 features = ["serde_support"]
 git = "https://github.com/KZen-networks/rust-gmp"
 optional = true
+
+[dependencies.bincode]
+version = "~0.6.0"
+default-features = false
+features = ["rustc-serialize"]
