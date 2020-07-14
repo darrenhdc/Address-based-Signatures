@@ -11,13 +11,14 @@ use curv::{FE, GE};
 
 
 #[derive(Clone)]
-pub struct BLS_Setup {
+pub struct gc1_BLS_Setup {
     x: Fr, // sk
     pub X: G1, // pk
+    pub A: std::string::String,
 }
 
 #[derive(Clone)]
-pub struct BLS_Signature {
+pub struct gc1_BLS_Signature {
     pub sigma: G2,
 }
 
@@ -39,33 +40,36 @@ pub fn H_G2(m: &BigInt) -> G2 {
         result
 }
 
-impl BLS_Setup{
+impl gc1_BLS_Setup{
     pub fn keygen() -> Self {
         let rng = &mut rand::thread_rng();
         let x = Fr::random(rng);
         let X = G1::one() * x; // pk = g1^sk
+        let A = crate::into_hex(X).unwrap();
         Self {
             x, // sk
             X, // pk
+            A, // addr
         }
     }
     
     pub fn sign(
         &self,
         m: &BigInt
-    ) -> BLS_Signature {
+    ) -> gc1_BLS_Signature {
         let sigma = H_G2(m) * self.x;
-        BLS_Signature {
+        gc1_BLS_Signature {
             sigma
         }
     }
 
     pub fn verify(   
-        X: G1,
-        sig: &BLS_Signature,
+        A: &std::string::String,
+        sig: &gc1_BLS_Signature,
         m: &BigInt,
     ) -> bool  {
         let mut flag = true;
+        let X: G1 = crate::from_hex(&A).unwrap();
         if pairing(G1::one(), sig.sigma) != pairing(X, H_G2(m)) {
             flag = false
         }

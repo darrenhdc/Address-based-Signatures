@@ -4,8 +4,8 @@ extern crate test;
 use test::Bencher;
 use protocols::BLS_sig;
 use protocols::BB_sig;
-// use protocols::gc1_BLS_sig;
-// use protocols::gc1_BB_sig;
+use protocols::gc1_BLS_sig;
+use protocols::gc1_BB_sig;
 use protocols::gc2_BLS_sig;
 use protocols::gc2_BB_sig;
 use protocols::addr_schnorr;
@@ -35,6 +35,12 @@ use curv::{FE, GE};
 pub fn into_hex<S: Encodable>(obj: S) -> Option<String> {
     encode(&obj, Infinite).ok().map(|e| e.to_hex())
 }
+
+pub fn from_hex<S: Decodable>(s: &str) -> Option<S> {
+    let s = s.from_hex().unwrap();
+    decode(&s).ok()
+}
+
 
 // convert typen String to static str
 pub fn string_to_static_str(s: String) -> &'static str {
@@ -247,6 +253,121 @@ fn Addr_based_ECDSA_verify(b: &mut Bencher) {
     });
 }
 
+
+#[bench]
+fn BB_sign(b: &mut Bencher) {
+    let message = HSha256::create_hash(&[&BigInt::from(12345),]);
+    let s1 = BB_sig::BB_Setup::keygen();
+    b.iter(||{
+        s1.sign(&message);
+    });
+}
+
+#[bench]
+fn BB_verify(b: &mut Bencher) {
+    let message = HSha256::create_hash(&[&BigInt::from(12345),]);
+    let s1 = BB_sig::BB_Setup::keygen();
+    let sig1 = s1.sign(&message);
+    b.iter(||{
+        BB_sig::BB_Setup::verify(s1.X, &sig1, &message);
+    });
+}
+
+#[bench]
+fn BLS_sign(b: &mut Bencher) {
+    let message = HSha256::create_hash(&[&BigInt::from(12345),]);
+    let s1 = BLS_sig::BLS_Setup::keygen();
+    b.iter(||{
+        s1.sign(&message);
+    });
+}
+
+#[bench]
+fn BLS_verify(b: &mut Bencher) {
+    let message = HSha256::create_hash(&[&BigInt::from(12345),]);
+    let s1 = BLS_sig::BLS_Setup::keygen();
+    let sig1 = s1.sign(&message);
+    b.iter(||{
+        BLS_sig::BLS_Setup::verify(s1.X, &sig1, &message);
+    });
+}
+
+#[bench]
+fn gc1_BB_sign(b: &mut Bencher) {
+    let message = HSha256::create_hash(&[&BigInt::from(12345),]);
+    let s1 = gc1_BB_sig::gc1_BB_Setup::keygen();
+    b.iter(||{
+        s1.sign(&message);
+    });
+}
+
+#[bench]
+fn gc1_BB_verify(b: &mut Bencher) {
+    let message = HSha256::create_hash(&[&BigInt::from(12345),]);
+    let s1 = gc1_BB_sig::gc1_BB_Setup::keygen();
+    let sig1 = s1.sign(&message);
+    b.iter(||{
+        gc1_BB_sig::gc1_BB_Setup::verify(&s1.A, &sig1, &message);
+    });
+}
+
+#[bench]
+fn gc1_BLS_sign(b: &mut Bencher) {
+    let message = HSha256::create_hash(&[&BigInt::from(12345),]);
+    let s1 = gc1_BLS_sig::gc1_BLS_Setup::keygen();
+    b.iter(||{
+        s1.sign(&message);
+    });
+}
+
+#[bench]
+fn gc1_BLS_verify(b: &mut Bencher) {
+    let message = HSha256::create_hash(&[&BigInt::from(12345),]);
+    let s1 = gc1_BLS_sig::gc1_BLS_Setup::keygen();
+    let sig1 = s1.sign(&message);
+    b.iter(||{
+        gc1_BLS_sig::gc1_BLS_Setup::verify(&s1.A, &sig1, &message);
+    });
+}
+
+#[bench]
+fn gc2_BB_sign(b: &mut Bencher) {
+    let message = HSha256::create_hash(&[&BigInt::from(12345),]);
+    let s1 = gc2_BB_sig::gc2_BB_Setup::keygen();
+    b.iter(||{
+        s1.sign(&message);
+    });
+}
+
+#[bench]
+fn gc2_BB_verify(b: &mut Bencher) {
+    let message = HSha256::create_hash(&[&BigInt::from(12345),]);
+    let s1 = gc2_BB_sig::gc2_BB_Setup::keygen();
+    let sig1 = s1.sign(&message);
+    b.iter(||{
+        gc2_BB_sig::gc2_BB_Setup::verify(s1.X, &sig1, &message, &s1.A);
+    });
+}
+
+#[bench]
+fn gc2_BLS_sign(b: &mut Bencher) {
+    let message = HSha256::create_hash(&[&BigInt::from(12345),]);
+    let s1 = gc2_BLS_sig::gc2_BLS_Setup::keygen();
+    b.iter(||{
+        s1.sign(&message);
+    });
+}
+
+#[bench]
+fn gc2_BLS_verify(b: &mut Bencher) {
+    let message = HSha256::create_hash(&[&BigInt::from(12345),]);
+    let s1 = gc2_BLS_sig::gc2_BLS_Setup::keygen();
+    let sig1 = s1.sign(&message);
+    b.iter(||{
+        gc2_BLS_sig::gc2_BLS_Setup::verify(s1.X, &sig1, &message, &s1.A);
+    });
+}
+
 fn main() {
     let message: BigInt = BigInt::from(12345);
     let s1 = addr_ecdsa::Addr_Based_ECDSA_Setup::keygen();
@@ -299,6 +420,11 @@ fn main() {
     let ret10 = BB_sig::BB_Setup::verify(s10.X, &sig10, &message);
     println!("BB_verify:{}",ret10);
 
+    let s11 = gc1_BB_sig::gc1_BB_Setup::keygen();
+    let sig11 = s11.sign(&message);
+    let ret11 = gc1_BB_sig::gc1_BB_Setup::verify(&s11.A, &sig11, &message);
+    println!("GC1_BB_verify:{}",ret11);
+
     let s12 = gc2_BB_sig::gc2_BB_Setup::keygen();
     let sig12 = s12.sign(&message);
     let ret12 = gc2_BB_sig::gc2_BB_Setup::verify(s12.X, &sig12, &message, &s12.A);
@@ -308,6 +434,11 @@ fn main() {
     let sig20 = s20.sign(&message);
     let ret20 = BLS_sig::BLS_Setup::verify(s20.X, &sig20, &message);
     println!("BLS_verify:{}",ret20);
+
+    let s21 = gc1_BLS_sig::gc1_BLS_Setup::keygen();
+    let sig21 = s21.sign(&message);
+    let ret21 = gc1_BLS_sig::gc1_BLS_Setup::verify(&s21.A, &sig21, &message);
+    println!("GC1_BLS_verify:{}",ret21);
 
     let s22 = gc2_BLS_sig::gc2_BLS_Setup::keygen();
     let sig22 = s22.sign(&message);
