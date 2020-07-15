@@ -1,5 +1,5 @@
 # Address-based Signature
-implementation of the following algorithms in src/protocols/:
+implementation of the following algorithms in src/protocols/
 - Address based signature
 - Address based ECDSA
 - ECDSA + GC2
@@ -9,3 +9,6 @@ implementation of the following algorithms in src/protocols/:
 - Key-prefix Schnorr + GC2
 - original Schnorr
 - original ECDSA
+- BB/BLS signature
+- BB/BLS signature + GC1
+- BB/BLS signature + GC2
