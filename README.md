@@ -1,5 +1,6 @@
 # Address-based Signature
-implementation of the following algorithms in src/protocols/
+
+implementation of the following algorithms in src/protocols/, using secp256k1 and bn256 curves
 - Address based signature
 - Address based ECDSA
 - ECDSA + GC2
